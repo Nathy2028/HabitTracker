@@ -5,9 +5,10 @@ interface HabitItemProps {
   onToggleComplete: (id: string) => void
   onEdit: (habit: Habit) => void
   onDelete: (id: string) => void
+  deleting: boolean
 }
 
-function HabitItem({ habit, onToggleComplete, onEdit, onDelete }: HabitItemProps) {
+function HabitItem({ habit, onToggleComplete, onEdit, onDelete, deleting }: HabitItemProps) {
   return (
     <article className={`habit-item${habit.completed ? ' is-completed' : ''}`}>
       <button
@@ -28,7 +29,7 @@ function HabitItem({ habit, onToggleComplete, onEdit, onDelete }: HabitItemProps
       </div>
       <div className="habit-actions">
         <button className="icon-button" type="button" onClick={() => onEdit(habit)}>Editar</button>
-        <button className="icon-button danger" type="button" onClick={() => onDelete(habit.id)}>Eliminar</button>
+        <button className="icon-button danger" type="button" onClick={() => onDelete(habit.id)} disabled={deleting}>{deleting ? 'Eliminando...' : 'Eliminar'}</button>
       </div>
     </article>
   )

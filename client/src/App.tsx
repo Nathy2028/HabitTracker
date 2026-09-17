@@ -1,39 +1,66 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import HabitForm from './components/HabitForm'
 import HabitList from './components/HabitList'
 import './App.css'
 import type { Habit, HabitInput } from './types/Habit'
-
-const initialHabits: Habit[] = [
-  { id: 'habit-reading', name: 'Leer 20 minutos', description: 'Desconectar y avanzar un poco cada día.', completed: false },
-  { id: 'habit-water', name: 'Tomar suficiente agua', description: 'Mantenerme hidratado durante toda la jornada.', completed: true },
-  { id: 'habit-exercise', name: 'Hacer ejercicio', description: 'Mover el cuerpo y cuidar mi energía.', completed: false },
-]
+import { createHabit, deleteHabit, getHabits, toggleHabit, updateHabit } from './services/habitsApi'
 
 function App() {
-  const [habits, setHabits] = useState<Habit[]>(initialHabits)
+  const [habits, setHabits] = useState<Habit[]>([])
   const [habitToEdit, setHabitToEdit] = useState<Habit | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  function handleSaveHabit(habitInput: HabitInput) {
+  useEffect(() => {
+    getHabits()
+      .then(setHabits)
+      .catch((loadError: unknown) => setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar los hábitos.'))
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  async function handleSaveHabit(habitInput: HabitInput) {
+    setError('')
     if (habitToEdit) {
-      setHabits((currentHabits) => currentHabits.map((habit) => (
-        habit.id === habitToEdit.id ? { ...habit, ...habitInput } : habit
-      )))
+      try {
+        const updatedHabit = await updateHabit(habitToEdit.id, habitInput, habitToEdit.completed)
+        setHabits((currentHabits) => currentHabits.map((habit) => habit.id === updatedHabit.id ? updatedHabit : habit))
+      } catch (saveError: unknown) {
+        setError(saveError instanceof Error ? saveError.message : 'No se pudo actualizar el hábito.')
+        return
+      }
       setHabitToEdit(null)
       return
     }
-    setHabits((currentHabits) => [...currentHabits, { id: crypto.randomUUID(), ...habitInput, completed: false }])
+
+    try {
+      const newHabit = await createHabit(habitInput)
+      setHabits((currentHabits) => [newHabit, ...currentHabits])
+    } catch (saveError: unknown) {
+      setError(saveError instanceof Error ? saveError.message : 'No se pudo crear el hábito.')
+    }
   }
 
-  function handleToggleComplete(id: string) {
-    setHabits((currentHabits) => currentHabits.map((habit) => (
-      habit.id === id ? { ...habit, completed: !habit.completed } : habit
-    )))
+  async function handleToggleComplete(id: string) {
+    const habit = habits.find((currentHabit) => currentHabit.id === id)
+    if (!habit) return
+    setError('')
+    try {
+      const updatedHabit = await toggleHabit(id, !habit.completed)
+      setHabits((currentHabits) => currentHabits.map((currentHabit) => currentHabit.id === updatedHabit.id ? updatedHabit : currentHabit))
+    } catch (toggleError: unknown) {
+      setError(toggleError instanceof Error ? toggleError.message : 'No se pudo actualizar el hábito.')
+    }
   }
 
-  function handleDelete(id: string) {
-    setHabits((currentHabits) => currentHabits.filter((habit) => habit.id !== id))
-    if (habitToEdit?.id === id) setHabitToEdit(null)
+  async function handleDelete(id: string) {
+    setError('')
+    try {
+      await deleteHabit(id)
+      setHabits((currentHabits) => currentHabits.filter((habit) => habit.id !== id))
+      if (habitToEdit?.id === id) setHabitToEdit(null)
+    } catch (deleteError: unknown) {
+      setError(deleteError instanceof Error ? deleteError.message : 'No se pudo eliminar el hábito.')
+    }
   }
 
   return (
@@ -50,9 +77,10 @@ function App() {
         </div>
         <div className="progress-note"><strong>{habits.filter((habit) => habit.completed).length}/{habits.length}</strong><span>completados hoy</span></div>
       </section>
+      {error && <p role="alert" className="form-error">{error}</p>}
       <div className="dashboard-grid">
         <HabitForm habitToEdit={habitToEdit} onSubmit={handleSaveHabit} onCancelEdit={() => setHabitToEdit(null)} />
-        <HabitList habits={habits} onToggleComplete={handleToggleComplete} onEdit={setHabitToEdit} onDelete={handleDelete} />
+        {isLoading ? <section className="habit-list"><p>Cargando hábitos...</p></section> : <HabitList habits={habits} onToggleComplete={handleToggleComplete} onEdit={setHabitToEdit} onDelete={handleDelete} />}
       </div>
     </main>
   )

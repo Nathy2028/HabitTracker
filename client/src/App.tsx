@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import HabitForm from './components/HabitForm'
 import HabitList from './components/HabitList'
+<<<<<<< Updated upstream
+=======
+import { createHabit, deleteHabit, getHabits, updateHabit } from './services/habitsApi'
+>>>>>>> Stashed changes
 import './App.css'
 import type { Habit, HabitInput } from './types/Habit'
 import { createHabit, deleteHabit, getHabits, toggleHabit, updateHabit } from './services/habitsApi'

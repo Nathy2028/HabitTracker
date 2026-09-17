@@ -1,121 +1,60 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import HabitForm from './components/HabitForm'
+import HabitList from './components/HabitList'
 import './App.css'
+import type { Habit, HabitInput } from './types/Habit'
+
+const initialHabits: Habit[] = [
+  { id: 'habit-reading', name: 'Leer 20 minutos', description: 'Desconectar y avanzar un poco cada día.', completed: false },
+  { id: 'habit-water', name: 'Tomar suficiente agua', description: 'Mantenerme hidratado durante toda la jornada.', completed: true },
+  { id: 'habit-exercise', name: 'Hacer ejercicio', description: 'Mover el cuerpo y cuidar mi energía.', completed: false },
+]
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [habits, setHabits] = useState<Habit[]>(initialHabits)
+  const [habitToEdit, setHabitToEdit] = useState<Habit | null>(null)
+
+  function handleSaveHabit(habitInput: HabitInput) {
+    if (habitToEdit) {
+      setHabits((currentHabits) => currentHabits.map((habit) => (
+        habit.id === habitToEdit.id ? { ...habit, ...habitInput } : habit
+      )))
+      setHabitToEdit(null)
+      return
+    }
+    setHabits((currentHabits) => [...currentHabits, { id: crypto.randomUUID(), ...habitInput, completed: false }])
+  }
+
+  function handleToggleComplete(id: string) {
+    setHabits((currentHabits) => currentHabits.map((habit) => (
+      habit.id === id ? { ...habit, completed: !habit.completed } : habit
+    )))
+  }
+
+  function handleDelete(id: string) {
+    setHabits((currentHabits) => currentHabits.filter((habit) => habit.id !== id))
+    if (habitToEdit?.id === id) setHabitToEdit(null)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <main className="app-shell">
+      <header className="app-header">
+        <div className="brand-mark" aria-hidden="true">HT</div>
+        <div><p className="brand-name">Habit tracker</p><p className="brand-subtitle">Pequeños pasos, grandes cambios.</p></div>
+      </header>
+      <section className="intro">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <p className="eyebrow">Panel personal</p>
+          <h1>Construye un día que se sienta bien.</h1>
+          <p className="intro-copy">Organiza tus rutinas y celebra cada avance, por pequeño que sea.</p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+        <div className="progress-note"><strong>{habits.filter((habit) => habit.completed).length}/{habits.length}</strong><span>completados hoy</span></div>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <div className="dashboard-grid">
+        <HabitForm habitToEdit={habitToEdit} onSubmit={handleSaveHabit} onCancelEdit={() => setHabitToEdit(null)} />
+        <HabitList habits={habits} onToggleComplete={handleToggleComplete} onEdit={setHabitToEdit} onDelete={handleDelete} />
+      </div>
+    </main>
   )
 }
 

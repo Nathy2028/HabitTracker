@@ -6,9 +6,10 @@ interface HabitListProps {
   onToggleComplete: (id: string) => void
   onEdit: (habit: Habit) => void
   onDelete: (id: string) => void
+  deletingId: string | null
 }
 
-function HabitList({ habits, onToggleComplete, onEdit, onDelete }: HabitListProps) {
+function HabitList({ habits, onToggleComplete, onEdit, onDelete, deletingId }: HabitListProps) {
   if (habits.length === 0) {
     return (
       <section className="habit-list empty-state" aria-live="polite">
@@ -27,7 +28,7 @@ function HabitList({ habits, onToggleComplete, onEdit, onDelete }: HabitListProp
       </div>
       <div className="habit-items">
         {habits.map((habit) => (
-          <HabitItem key={habit.id} habit={habit} onToggleComplete={onToggleComplete} onEdit={onEdit} onDelete={onDelete} />
+          <HabitItem key={habit.id} habit={habit} onToggleComplete={onToggleComplete} onEdit={onEdit} onDelete={onDelete} deleting={deletingId === habit.id} />
         ))}
       </div>
     </section>

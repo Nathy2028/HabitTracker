@@ -91,6 +91,11 @@ textarea:focus { border-color: var(--sage-dark); outline: 3px solid rgba(49, 99,
 .empty-icon { display: block; color: var(--sage); font-size: 3rem; line-height: 1; }
 .empty-state h2 { margin-top: 14px; font-family: Georgia, serif; font-size: 1.7rem; font-weight: 400; }
 .empty-state p { margin-top: 8px; color: var(--muted); font-size: .85rem; }
+.page-state { padding: 120px 0; color: var(--text); text-align: center; }
+.error-state { display: grid; justify-items: center; gap: 16px; }
+.feedback { margin: -26px 0 28px; padding: 10px 14px; border-left: 4px solid var(--sage-dark); color: var(--sage-dark); background: var(--mint-light); font-size: .8rem; }
+.feedback.error { border-color: var(--coral); color: #c34e3d; background: #fff0e9; }
+.button:disabled, .icon-button:disabled { cursor: wait; opacity: .55; }
 
 @media (max-width: 760px) {
   .app-shell { width: min(100% - 32px, 560px); padding-top: 20px; }

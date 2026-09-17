@@ -1,34 +1,40 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import type { Habit, HabitInput } from '../types/Habit'
 
 interface HabitFormProps {
   habitToEdit?: Habit | null
-  onSubmit: (habitInput: HabitInput) => void
+  saving: boolean
+  onSubmit: (habitInput: HabitInput) => Promise<void>
   onCancelEdit: () => void
 }
 
-function HabitForm({ habitToEdit, onSubmit, onCancelEdit }: HabitFormProps) {
+function HabitForm({ habitToEdit, saving, onSubmit, onCancelEdit }: HabitFormProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [error, setError] = useState('')
   const isEditing = Boolean(habitToEdit)
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setName(habitToEdit?.name ?? '')
     setDescription(habitToEdit?.description ?? '')
     setError('')
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [habitToEdit])
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const trimmedName = name.trim()
     if (!trimmedName) {
       setError('El nombre es obligatorio.')
       return
     }
-    onSubmit({ name: trimmedName, description: description.trim() })
-    setName('')
-    setDescription('')
+    await onSubmit({ name: trimmedName, description: description.trim() })
+    if (!habitToEdit) {
+      setName('')
+      setDescription('')
+    }
     setError('')
   }
 
@@ -69,7 +75,7 @@ function HabitForm({ habitToEdit, onSubmit, onCancelEdit }: HabitFormProps) {
       {error && <p className="form-error" id="habit-name-error">{error}</p>}
       <div className="form-actions">
         {isEditing && <button className="button button-ghost" type="button" onClick={handleCancel}>Cancelar</button>}
-        <button className="button button-primary" type="submit">{isEditing ? 'Guardar cambios' : 'Añadir hábito'}</button>
+        <button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Añadir hábito'}</button>
       </div>
     </form>
   )
